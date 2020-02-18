@@ -2,13 +2,15 @@ import torch
 import torchvision
 from torchvision import datasets, transforms
 import numpy as np
-from torch import nn
+from torch import nn, optim
 from torch.nn import functional as F
 import time
 import sys
 
 import spn.algorithms.Inference as inference
 import spn.io.Graphics as graphics
+
+from rat_spn import RatSpnConstructor
 
 
 def one_hot(vector):
@@ -88,9 +90,7 @@ def run_torch(n_epochs=100, batch_size=256):
         n_epochs (int, optional): Number of epochs.
         batch_size (int, optional): Batch size.
     """
-    from spn.experiments.RandomSPNs_layerwise.rat_spn import RatSpnConstructor
-    from torch import optim
-    from torch import nn
+    
 
     assert len(sys.argv) == 2, "Usage: train.mnist cuda/cpu"
     dev = sys.argv[1]

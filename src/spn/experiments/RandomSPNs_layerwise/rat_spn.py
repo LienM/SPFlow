@@ -1,16 +1,15 @@
 import logging
 
 import numpy as np
-import tensorflow as tf
 import torch
 from torch import nn
 from torch.nn import functional as F
-import time
 
 from torch import distributions as dist
-from spn.algorithms.layerwise.distributions import Normal, dist_forward
-from spn.algorithms.layerwise.distributions import IsotropicMultivariateNormal
-from spn.algorithms.layerwise.distributions import MultivariateNormal
+from spn.algorithms.layerwise.distributions import dist_forward
+
+# from spn.algorithms.layerwise.distributions import IsotropicMultivariateNormal
+# from spn.algorithms.layerwise.distributions import MultivariateNormal
 from spn.algorithms.layerwise.distributions import Leaf
 from spn.algorithms.layerwise.layers import Product, Sum
 
@@ -423,7 +422,6 @@ if __name__ == "__main__":
     b = 200
     d = 50
     rat = make_rat(b, 10, num_splits=4)
-    import torch
 
     x = torch.randn(d, b)
     x = rat(x)

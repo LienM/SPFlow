@@ -103,6 +103,7 @@ class Normal(Leaf):
         x = super().forward(x)
         return x
 
+
 class Bernoulli(Leaf):
     """Gaussian layer. Maps each input feature to its gaussian log likelihood."""
 
@@ -126,6 +127,7 @@ class Bernoulli(Leaf):
         x = dist_forward(bernoulli, x)
         return x
 
+
 class MultivariateNormal(Leaf):
     """Multivariate Gaussian layer."""
 
@@ -145,9 +147,7 @@ class MultivariateNormal(Leaf):
         self._n_dists = np.ceil(in_features / cardinality).astype(int)
 
         # Create gaussian means and covs
-        self.means = nn.Parameter(
-            torch.randn(multiplicity * self._n_dists, cardinality)
-        )
+        self.means = nn.Parameter(torch.randn(multiplicity * self._n_dists, cardinality))
 
         # Generate covariance matrix via the cholesky decomposition: s = A'A where A is a triangular matrix
         # Further ensure, that diag(a) > 0 everywhere, such that A has full rank
@@ -183,7 +183,6 @@ class MultivariateNormal(Leaf):
         # Output shape: [n, d / cardinality, multiplicity]
         x = x.view(batch_size, self._n_dists, self.multiplicity)
 
-
         return x
 
 
@@ -203,9 +202,7 @@ class Beta(Leaf):
         # Create beta parameters
         self.concentration0 = nn.Parameter(torch.rand(1, in_features, multiplicity))
         self.concentration1 = nn.Parameter(torch.rand(1, in_features, multiplicity))
-        self.beta = dist.Beta(
-            concentration0=self.concentration0, concentration1=self.concentration1
-        )
+        self.beta = dist.Beta(concentration0=self.concentration0, concentration1=self.concentration1)
 
     def forward(self, x):
         x = super().forward(x)
@@ -278,7 +275,6 @@ class Gamma(Leaf):
         x = dist_forward(self.gamma, x)
         return x
 
-
 class Representations(Leaf):
     def __init__(self, distributions, multiplicity, in_features, dropout=0.0):
         """
@@ -333,14 +329,8 @@ class IsotropicMultivariateNormal(Leaf):
         # Create gaussian means and stds
         self.means = nn.Parameter(torch.randn(multiplicity, self._n_dists, cardinality))
         self.stds = nn.Parameter(torch.rand(multiplicity, self._n_dists, cardinality))
-        self.cov_factors = nn.Parameter(
-            torch.zeros(multiplicity, self._n_dists, cardinality, 1),
-            requires_grad=False,
-        )
-        self.gauss = dist.LowRankMultivariateNormal(
-            loc=self.means, cov_factor=self.cov_factors, cov_diag=self.stds
-        )
-
+        self.cov_factors = nn.Parameter(torch.zeros(multiplicity, self._n_dists, cardinality, 1), requires_grad=False,)
+        self.gauss = dist.LowRankMultivariateNormal(loc=self.means, cov_factor=self.cov_factors, cov_diag=self.stds)
 
     def forward(self, x):
         # Apply dropout and marginalization defined in super class
@@ -365,28 +355,6 @@ class IsotropicMultivariateNormal(Leaf):
         # Output shape: [n, d / cardinality, multiplicity]
         x = x.permute((0, 2, 1))
 
-        return x
-
-
-class Gamma(Leaf):
-    """Gamma distribution layer."""
-
-    def __init__(self, multiplicity, in_features, dropout=0.0):
-        """Creat a gamma layer.
-
-        Args:
-            multiplicity: Number of parallel representations for each input feature.
-            in_features: Number of input features.
-
-        """
-        super().__init__(multiplicity, in_features, dropout)
-        self.concentration = nn.Parameter(torch.rand(1, in_features, multiplicity))
-        self.rate = nn.Parameter(torch.rand(1, in_features, multiplicity))
-        self.gamma = dist.Gamma(concentration=self.concentration, rate=self.rate)
-
-    def forward(self, x):
-        x = dist_forward(self.gamma, x)
-        x = super().forward(x)
         return x
 
 
@@ -425,9 +393,6 @@ if __name__ == "__main__":
     assert res[0, 3, 0] != 0, "was " + str(res[0, 3, 0])
     exit()
 
-
-
-
     # Define the problem size
     batch_size = 10
     n_features = 3
@@ -462,13 +427,11 @@ if __name__ == "__main__":
         loss.backward(retain_graph=True)
         optimizer.step()
         layer.apply(clipper)
-        
+
         print(loss)
         print(layer.probs)
 
-
     exit()
-
 
     # Create MV distribution to sample from
     loc1 = torch.rand(n_features // 2)
@@ -481,9 +444,7 @@ if __name__ == "__main__":
     mv2 = dist.MultivariateNormal(loc=loc2, scale_tril=triang2)
 
     # Multivariate normal layer for SPNs
-    model = MultivariateNormal(
-        multiplicity=multiplicity, in_features=n_features, cardinality=n_features // 2
-    )
+    model = MultivariateNormal(multiplicity=multiplicity, in_features=n_features, cardinality=n_features // 2)
 
     # Use SGD
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -491,18 +452,12 @@ if __name__ == "__main__":
     def print_true_error(i):
         print(
             f"Squared error on means [{i}] :",
-            torch.pow(
-                model.means.view(multiplicity, model._n_dists, -1)[:, i, :] - locs[i], 2
-            )
-            .sum()
-            .item(),
+            torch.pow(model.means.view(multiplicity, model._n_dists, -1)[:, i, :] - locs[i], 2).sum().item(),
         )
         print(
             f"Squared error on tril [{i}] : ",
             torch.pow(
-                model.triangular.view(multiplicity, model._n_dists, 3, 3)[:, i, :, :]
-                - triangs[i].view(1, 3, 3),
-                2,
+                model.triangular.view(multiplicity, model._n_dists, 3, 3)[:, i, :, :] - triangs[i].view(1, 3, 3), 2,
             )
             .sum()
             .item(),
@@ -535,11 +490,7 @@ if __name__ == "__main__":
             if batch_idx % 100 == 0:
                 print(
                     "Train Epoch: {} [{: >5}/{: <5} ({:.0f}%)]\tLoss: {:.6f}".format(
-                        epoch,
-                        batch_idx * len(data),
-                        100 * 1000,
-                        100.0 * batch_idx / 1000,
-                        loss.item() / 100,
+                        epoch, batch_idx * len(data), 100 * 1000, 100.0 * batch_idx / 1000, loss.item() / 100,
                     )
                 )
                 print_true_error(0)
